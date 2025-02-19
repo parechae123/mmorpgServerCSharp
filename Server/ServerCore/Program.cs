@@ -256,28 +256,97 @@ static void Main(string[] args)
         }
 */
         #endregion
-        #region 스핀락 케이스
+        #region 락 구현 케이스들
+        /*      //스핀락 존버메타,sleep 있으면 랜덤메타
+                static int _num = 0;
+                static SpinLock _lock = new SpinLock();
+
+                static void Thread_1()
+                {
+                    for (int i = 0; i < 10000000; i++)
+                    {
+                        _lock.Acquire();
+                        _num++;
+                        _lock.release();
+                    }
+                }   
+                static void Thread_2()
+                {
+                    for (int i = 0; i < 10000000; i++)
+                    {
+                        _lock.Acquire();
+                        _num--;
+                        _lock.release();
+                    }
+                }   
+                static void Main(string[] args)
+                {
+                    Task t1 = new Task(Thread_1);
+                    Task t2 = new Task(Thread_2);
+                    t1.Start();
+                    t2.Start();
+                    Task.WaitAll(t1, t2);
+                    Console.WriteLine($"테스크 완료 최종 값 : {_num}");
+                }*/
+        /*
+                //오토리셋 이벤트 예제
+                static int _num = 0;
+                static Lock _lock = new Lock();
+
+                static void Thread_1()
+                {
+                    for (int i = 0; i < 10000; i++)
+                    {
+                        _lock.Acquire();
+                        _num++;
+                        _lock.release();
+                    }
+                }
+                static void Thread_2()
+                {
+                    for (int i = 0; i < 10000; i++)
+                    {
+                        _lock.Acquire();
+                        _num--;
+                        _lock.release();
+                    }
+                }
+                static void Main(string[] args)
+                {
+                    Task t1 = new Task(Thread_1);
+                    Task t2 = new Task(Thread_2);
+                    t1.Start();
+                    t2.Start();
+                    Task.WaitAll(t1, t2);
+                    Console.WriteLine($"테스크 완료 최종 값 : {_num}");
+                }*/
+
+        //뮤텍스
         static int _num = 0;
-        static spinLock _lock = new spinLock();
+
+        //위의 lock 예제와 다른 점 : 다중락이 가능, waitOne을 두번 실행하면 release가 두번 되야함
+        //Thread ID를 가지고 있어 다른곳에서 release가 발생 시 디버깅하는데 용이
+        //대신 기능이 많은 만큼 무거움.. 그냥 개념만 가지고가자
+        static Mutex _lock = new Mutex();//mutex = 커널 동기화 객체로 컨텍스트 스위칭 발생으로 느림
 
         static void Thread_1()
         {
-            for (int i = 0; i < 10000000; i++)
+            for (int i = 0; i < 1000000; i++)
             {
-                _lock.Acquire();
+                _lock.WaitOne();
                 _num++;
-                _lock.release();
+                _lock.ReleaseMutex();
             }
-        }   
+        }
         static void Thread_2()
         {
-            for (int i = 0; i < 10000000; i++)
+            for (int i = 0; i < 1000000; i++)
             {
-                _lock.Acquire();
+                _lock.WaitOne();
                 _num--;
-                _lock.release();
+                _lock.ReleaseMutex();
             }
-        }   
+        }
         static void Main(string[] args)
         {
             Task t1 = new Task(Thread_1);
@@ -287,7 +356,6 @@ static void Main(string[] args)
             Task.WaitAll(t1, t2);
             Console.WriteLine($"테스크 완료 최종 값 : {_num}");
         }
-
         #endregion
     }
     #region 데드락 테스트 Define
@@ -343,7 +411,7 @@ static void Main(string[] args)
     }
     #endregion
     #region 락 대기 구현
-    class spinLock
+    class SpinLock
     {
         volatile int _locked = 0;
         public void Acquire()
@@ -384,6 +452,25 @@ static void Main(string[] args)
             //Interlocked.Exchange(ref _locked, 0);
             _locked = 0;
         }   
+    }    
+    class Lock//오토리셋 이벤트 예제
+    {
+        //첫번째 인자 불값 = false = 들어 올 수 없는 상태, true = 들어 올 수 있음
+        //bool <- 커널
+        AutoResetEvent _available = new AutoResetEvent(true);
+        //ManualResetEvent _available = new ManualResetEvent(true);//대기시간이 길 때 이거 쓰면될듯
+        public void Acquire()
+        {
+            _available.WaitOne();   //입장 시도
+            //_available.Reset();   //메뉴얼 리셋 이벤트에서 문을 닫는 행동
+        }   
+        public void release()
+        {
+            //_available에 포함되어 있는 boolean값을 true로 바꿔줌
+            _available.Set();//falg = true
+        }   
     }
+
+
     #endregion
 }
