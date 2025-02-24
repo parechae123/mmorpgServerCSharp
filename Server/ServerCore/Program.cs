@@ -321,7 +321,7 @@ static void Main(string[] args)
                     Console.WriteLine($"테스크 완료 최종 값 : {_num}");
                 }*/
 
-        //뮤텍스
+/*        //뮤텍스락 구현 예제
         static int _num = 0;
 
         //위의 lock 예제와 다른 점 : 다중락이 가능, waitOne을 두번 실행하면 release가 두번 되야함
@@ -355,8 +355,9 @@ static void Main(string[] args)
             t2.Start();
             Task.WaitAll(t1, t2);
             Console.WriteLine($"테스크 완료 최종 값 : {_num}");
-        }
+        }*/
         #endregion
+
     }
     #region 데드락 테스트 Define
     class SessionManager
