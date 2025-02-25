@@ -321,42 +321,73 @@ static void Main(string[] args)
                     Console.WriteLine($"테스크 완료 최종 값 : {_num}");
                 }*/
 
-/*        //뮤텍스락 구현 예제
-        static int _num = 0;
+        /*        //뮤텍스락 구현 예제
+                static int _num = 0;
 
-        //위의 lock 예제와 다른 점 : 다중락이 가능, waitOne을 두번 실행하면 release가 두번 되야함
-        //Thread ID를 가지고 있어 다른곳에서 release가 발생 시 디버깅하는데 용이
-        //대신 기능이 많은 만큼 무거움.. 그냥 개념만 가지고가자
-        static Mutex _lock = new Mutex();//mutex = 커널 동기화 객체로 컨텍스트 스위칭 발생으로 느림
+                //위의 lock 예제와 다른 점 : 다중락이 가능, waitOne을 두번 실행하면 release가 두번 되야함
+                //Thread ID를 가지고 있어 다른곳에서 release가 발생 시 디버깅하는데 용이
+                //대신 기능이 많은 만큼 무거움.. 그냥 개념만 가지고가자
+                static Mutex _lock = new Mutex();//mutex = 커널 동기화 객체로 컨텍스트 스위칭 발생으로 느림
 
-        static void Thread_1()
-        {
-            for (int i = 0; i < 1000000; i++)
-            {
-                _lock.WaitOne();
-                _num++;
-                _lock.ReleaseMutex();
-            }
-        }
-        static void Thread_2()
-        {
-            for (int i = 0; i < 1000000; i++)
-            {
-                _lock.WaitOne();
-                _num--;
-                _lock.ReleaseMutex();
-            }
-        }
+                static void Thread_1()
+                {
+                    for (int i = 0; i < 1000000; i++)
+                    {
+                        _lock.WaitOne();
+                        _num++;
+                        _lock.ReleaseMutex();
+                    }
+                }
+                static void Thread_2()
+                {
+                    for (int i = 0; i < 1000000; i++)
+                    {
+                        _lock.WaitOne();
+                        _num--;
+                        _lock.ReleaseMutex();
+                    }
+                }
+                static void Main(string[] args)
+                {
+                    Task t1 = new Task(Thread_1);
+                    Task t2 = new Task(Thread_2);
+                    t1.Start();
+                    t2.Start();
+                    Task.WaitAll(t1, t2);
+                    Console.WriteLine($"테스크 완료 최종 값 : {_num}");
+                }*/
+        #endregion
+        static volatile int count = 0;
+        static LockFree _lock = new LockFree();
+
         static void Main(string[] args)
         {
-            Task t1 = new Task(Thread_1);
-            Task t2 = new Task(Thread_2);
+            Task t1 = new Task(delegate ()
+            {
+                for (int i = 0; i < 100000; i++)
+                {
+                    _lock.WriteLock();
+                    count++;
+                    _lock.WriteUnlock();
+                }
+            });
+            Task t2 = new Task(delegate ()
+            {
+                for (int i = 0; i < 100000; i++)
+                {
+                    _lock.WriteLock();
+                    count--;
+                    _lock.WriteUnlock();
+                }
+            });
+
             t1.Start();
             t2.Start();
-            Task.WaitAll(t1, t2);
-            Console.WriteLine($"테스크 완료 최종 값 : {_num}");
-        }*/
-        #endregion
+
+            Task.WaitAll(t1,t2);
+
+            Console.WriteLine(count);
+        }
 
     }
     #region 데드락 테스트 Define
