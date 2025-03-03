@@ -27,6 +27,11 @@ namespace ServerCore
         {
             Console.WriteLine("Hello Thread!");
         }
+        public static void Main()
+        {
+            TLS tls = new TLS();
+            tls.Init();
+        }
 
         /*        멀티쓰레드 예제
          *        static void Main(string[] args)
@@ -357,11 +362,15 @@ static void Main(string[] args)
                     Console.WriteLine($"테스크 완료 최종 값 : {_num}");
                 }*/
         #endregion
-        static volatile int count = 0;
+        /*LockFree프로그래밍으로 구현한 writeReadLock
+         * static volatile int count = 0;
         static LockFree _lock = new LockFree();
 
         static void Main(string[] args)
         {
+
+
+
             Task t1 = new Task(delegate ()
             {
                 for (int i = 0; i < 100000; i++)
@@ -387,7 +396,7 @@ static void Main(string[] args)
             Task.WaitAll(t1,t2);
 
             Console.WriteLine(count);
-        }
+        }*/
 
     }
     #region 데드락 테스트 Define

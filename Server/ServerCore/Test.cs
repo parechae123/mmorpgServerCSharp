@@ -153,4 +153,33 @@ namespace ServerCore
             Interlocked.Decrement(ref _flag);
         }
     }
+
+    public class TLS
+    {
+        static ThreadLocal<string> ThreadName = new ThreadLocal<string>(() => { return $"My Name is {Thread.CurrentThread.ManagedThreadId}"; });
+        
+        static void WhoAmI()
+        {
+            bool repeat = ThreadName.IsValueCreated;
+            if (repeat)
+            {
+                Console.WriteLine(ThreadName.Value + "(repeat)");
+            }
+            else
+            {
+
+                Console.WriteLine(ThreadName.Value);
+            }
+        }
+
+        public void Init()
+        {
+            ThreadPool.SetMinThreads(1, 1);
+            ThreadPool.SetMaxThreads(3, 3);
+            Parallel.Invoke(WhoAmI, WhoAmI, WhoAmI, WhoAmI, WhoAmI, WhoAmI, WhoAmI, WhoAmI);
+
+            ThreadName.Dispose();
+        }
+
+    }
 }
