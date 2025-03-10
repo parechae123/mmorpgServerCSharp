@@ -12,8 +12,10 @@ namespace ServerCore
     {
         public static void Main(string[] args)
         {
-            SocketServer socketServer = new SocketServer();
-            socketServer.Init();
+            /*SocketServer socketServer = new SocketServer();
+            socketServer.Init();*/
+            SessionListener sessionListener = new SessionListener();
+            sessionListener.Init();
         }
     }
 

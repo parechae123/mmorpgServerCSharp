@@ -8,6 +8,9 @@ namespace ServerCore
     class Session
     {
         Socket _socket;
+        //비동기 처리를 위한 변수, 1일 시 disConected, 0일 시 connected
+        int _disconnected = 0;
+
         public void Init(Socket socket)
         {
             _socket = socket;
@@ -25,8 +28,11 @@ namespace ServerCore
         }
         public void Disconnect()
         {
+            if (Interlocked.Exchange(ref _disconnected, 1) == 1) return;
+
             _socket.Shutdown(SocketShutdown.Both);
             _socket.Close();
+
         }
         #region 네트워크 통신
 
