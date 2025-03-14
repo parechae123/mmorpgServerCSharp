@@ -26,10 +26,11 @@ namespace DummyClient
             Console.WriteLine($"OnDisConnected : {endPoint}");
         }
 
-        public override void OnRecv(ArraySegment<byte> buffer)
+        public override int OnRecv(ArraySegment<byte> buffer)
         {
             string recvData = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
             Console.WriteLine($"[From Server] {recvData}");
+            return buffer.Count;
         }
 
         public override void OnSend(int numOfBytes)
@@ -47,7 +48,6 @@ namespace DummyClient
             IPHostEntry ipHost = Dns.GetHostEntry(host);
             IPAddress ipAddr = ipHost.AddressList[0];
             IPEndPoint endpoint = new IPEndPoint(ipAddr, 7777);
-            Console.WriteLine("여기");
             Connector connector = new Connector();
 
             connector.Connect(endpoint, () => { return new GameSession(); });

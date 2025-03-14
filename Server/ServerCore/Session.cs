@@ -12,6 +12,7 @@ namespace ServerCore
         //비동기 처리를 위한 변수, 1일 시 disConected, 0일 시 connected
         int _disconnected = 0;
 
+        ReceiveBuffer _recvBuff = new ReceiveBuffer(1024);
 
         object _lock = new object();
         Queue<byte[]> _sendQueue = new Queue<byte[]>();
@@ -20,7 +21,7 @@ namespace ServerCore
         SocketAsyncEventArgs _recvArgs = new SocketAsyncEventArgs();
 
         public abstract void OnConnected(EndPoint endPoint);
-        public abstract void OnRecv(ArraySegment<byte> buffer);
+        public abstract int OnRecv(ArraySegment<byte> buffer);
         public abstract void OnSend(int numOfBytes) ;
         public abstract void OnDisconnected(EndPoint endPoint) ;
 
@@ -29,8 +30,7 @@ namespace ServerCore
             _socket = socket;
             
             _recvArgs.Completed += new EventHandler<SocketAsyncEventArgs>(OnRecvComplete);
-            _recvArgs.SetBuffer(new byte[1024], 0, 1024);
-            //recvArgs.UserToken = this;// 식별자 구별,연동을 위해 사용
+            
             _sendArgs.Completed += new EventHandler<SocketAsyncEventArgs>(OnSendCompleted);
 
             RegisterRecv(_recvArgs);
@@ -110,6 +110,10 @@ namespace ServerCore
 
         void RegisterRecv(SocketAsyncEventArgs args)
         {
+            _recvBuff.Clean();
+            ArraySegment<byte> segment = _recvBuff.WriteSegment;
+            _recvArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
+
             bool pending = _socket.ReceiveAsync(args);
             if (pending == false)
             {
@@ -123,7 +127,30 @@ namespace ServerCore
             {
                 try
                 {
-                    OnRecv(new ArraySegment<byte>(args.Buffer, args.Offset, args.BytesTransferred));
+                    //Write 커서 이동
+                    if (_recvBuff.OnWrite(args.BytesTransferred) == false)
+                    {
+                        Disconnect();
+                        return;
+                    }
+                    //컨텐츠 쪽으로 데이터를 넘겨주고 얼마나 처리했는지 받는다
+
+
+
+                    int processLen = OnRecv(_recvBuff.ReadSegment);
+                    if (processLen< 0 || _recvBuff.DataSize < processLen)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    //read 커서 이동
+                    if (_recvBuff.OnRead(processLen) == false)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
                     RegisterRecv(args);
                 }
                 catch (Exception e)
