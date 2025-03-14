@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace ServerCore
 {
-    class LIstener
+    public class LIstener
     {
         Socket _listenSocket;
-        Action<Socket> _onAcceptHandler;
-        public void Init(IPEndPoint endPoint,Action<Socket> onAcceptHandler)
+        Func<Session> _sessionFactory;
+        public void Init(IPEndPoint endPoint, Func<Session> sessionFactory)
         {
             _listenSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            _onAcceptHandler += onAcceptHandler;
+            _sessionFactory += sessionFactory;
 
             _listenSocket.Bind(endPoint);
             _listenSocket.Listen(10);
@@ -38,8 +38,9 @@ namespace ServerCore
         {
             if (args.SocketError == SocketError.Success)
             {
-                // TODO
-                _onAcceptHandler.Invoke(args.AcceptSocket);
+                Session session = _sessionFactory.Invoke();
+                session.Init(args.AcceptSocket); //session에게 clientSocket을 넘겨줌
+                session.OnConnected(args.AcceptSocket.RemoteEndPoint);
             }
             else
             {

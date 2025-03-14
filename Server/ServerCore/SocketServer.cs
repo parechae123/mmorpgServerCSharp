@@ -48,7 +48,7 @@ namespace ServerCore
             // CMD  => ping www.google.com
 
 
-            _lIstener.Init(endpoint,OnAcceptHandler);
+            //_lIstener.Init(endpoint,OnAcceptHandler);
             Console.WriteLine("Listening....");
 
             while (true)

@@ -1,20 +1,62 @@
-﻿namespace Server
+﻿using ServerCore;
+using System.Net;
+using System.Text;
+namespace Server
 {
-    class Program
+    class GameSession : Session
     {
-        static int a = 0x00000000000a;
-        static int b = 0x00000000000b;
-        static int c = 0x00000000000c;
-        static int d = 0x00000000000d;
-        static int e = 0x00000000000e;
-        static int f = 0x00000000000f;
-        static void Main()
+        public override void OnConnected(EndPoint endPoint)
         {
-            Console.WriteLine(a);
-            Console.WriteLine(b);
-            Console.WriteLine(c);
-            Console.WriteLine(d);
-            Console.WriteLine(f);
+
+            Console.WriteLine($"OnConnected : {endPoint}");
+            //받는다
+            byte[] sendBuff = Encoding.UTF8.GetBytes("Welcome to MMORPG Server");
+            Send(sendBuff);
+
+            Thread.Sleep(1000);
+            Disconnect();
+        }
+
+        public override void OnDisconnected(EndPoint endPoint)
+        {
+
+            Console.WriteLine($"OnDisConnected : {endPoint}");
+        }
+
+        public override void OnRecv(ArraySegment<byte> buffer)
+        {
+            string recvData = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
+            Console.WriteLine($"[From Client] {recvData}");
+        }
+
+        public override void OnSend(int numOfBytes)
+        {
+            Console.WriteLine($"Transferred bytes : {numOfBytes}");
+
+        }
+    }
+    public static class Program
+    {
+        static LIstener _lIstener = new LIstener();
+
+        public static void Main()
+        {
+            //DMS == Domain, Name , System
+            string host = Dns.GetHostName();
+            IPHostEntry ipHost = Dns.GetHostEntry(host);
+            IPAddress ipAddr = ipHost.AddressList[0];
+            IPEndPoint endpoint = new IPEndPoint(ipAddr, 7777);
+
+            // CMD  => ping www.google.com
+
+
+            _lIstener.Init(endpoint, () => { return new GameSession(); });
+            Console.WriteLine("Listening....");
+
+            while (true)
+            {
+                ;
+            }
         }
     }
 }
