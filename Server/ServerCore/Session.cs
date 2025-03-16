@@ -1,11 +1,53 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
 namespace ServerCore
 {
+    public abstract class PacketSession : Session
+    {
+        public static readonly int headerSize = 2;
+
+        //[size(2)][packet(2)][....(종속데이터)]
+        /// <summary>
+        /// sealed 키워드는 해당 클래스가 부모클래스일 시 자식 클래스에서 
+        /// override할 수 없게끔 봉인함
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public sealed override int OnRecv(ArraySegment<byte> buffer)
+        {
+            int processLen = 0;
+            
+            while (true)
+            {
+
+                //packet 클래스의 size,packetId는 각각 2바이트 이므로 buffer가 최소한 2byte 보다 커야함
+                //최소한 header를 파싱 할 수 있는 지 판단
+                if (buffer.Count < headerSize)
+                {
+                    break;
+                }
+                //패킷 손실이 없는지 확인 
+                ushort dataSize = BitConverter.ToUInt16(buffer.Array, buffer.Offset);//버퍼 array를 조사하여 offsset부터 데이터가 있는 값들을 반환
+                if (buffer.Count < dataSize)
+                {
+                    break;
+                }
+                OnRecvPacket(new ArraySegment<byte>(buffer.Array,buffer.Offset,dataSize));//패킷의 유효범위
+
+                processLen += dataSize;
+                buffer = new ArraySegment<byte>(buffer.Array, buffer.Offset+dataSize, buffer.Count - dataSize);
+            }
+
+            return processLen;
+        }
+
+        public abstract void OnRecvPacket(ArraySegment<byte> buffer);
+    }
     public abstract class Session
     {
         Socket _socket;
@@ -15,7 +57,7 @@ namespace ServerCore
         ReceiveBuffer _recvBuff = new ReceiveBuffer(1024);
 
         object _lock = new object();
-        Queue<byte[]> _sendQueue = new Queue<byte[]>();
+        Queue<ArraySegment<byte>> _sendQueue = new Queue<ArraySegment<byte>>();
         List<ArraySegment<byte>> _pendingList = new List<ArraySegment<byte>>();
         SocketAsyncEventArgs _sendArgs = new SocketAsyncEventArgs();
         SocketAsyncEventArgs _recvArgs = new SocketAsyncEventArgs();
@@ -36,7 +78,7 @@ namespace ServerCore
             RegisterRecv(_recvArgs);
             //
         }
-        public void Send(byte[] sendBuff)
+        public void Send(ArraySegment<byte> sendBuff)
         {
             lock (_lock)
             {
@@ -62,8 +104,8 @@ namespace ServerCore
 
             while (_sendQueue.Count>0)
             {
-                 byte[] buff = _sendQueue.Dequeue();
-                _pendingList.Add(new ArraySegment<byte>(buff, 0, buff.Length));
+                ArraySegment<byte> buff = _sendQueue.Dequeue();
+                _pendingList.Add(buff);
             }
 
             _sendArgs.BufferList = _pendingList;

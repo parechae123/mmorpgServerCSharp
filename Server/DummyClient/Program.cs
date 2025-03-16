@@ -5,8 +5,21 @@ using System.Text;
 
 namespace DummyClient
 {
+
+    class Packet
+    {
+        public ushort size; //사이즈는 음이 아닌 정수이기에 ushort로 선언
+        public ushort packetId;
+    }
+    //
+    class LoginOkPacket : Packet
+    {
+
+    }
+
     class GameSession : Session
     {
+
         public override void OnConnected(EndPoint endPoint)
         {
 
@@ -48,6 +61,7 @@ namespace DummyClient
             IPHostEntry ipHost = Dns.GetHostEntry(host);
             IPAddress ipAddr = ipHost.AddressList[0];
             IPEndPoint endpoint = new IPEndPoint(ipAddr, 7777);
+            Console.WriteLine("여기");
             Connector connector = new Connector();
 
             connector.Connect(endpoint, () => { return new GameSession(); });
