@@ -15,6 +15,7 @@ namespace ServerCore
 
         public static int ChunkSize { get; set; } = 4096;
 
+        
         public static ArraySegment<byte> Open(int reserveSize)
         {
             if(CurrentBuffer.Value == null)

@@ -8,32 +8,88 @@ namespace DummyClient
 {
     //클라 => 서버로 연결하는 대리자 : 서버세션
     //서버 => 클라로 연결하는 대리자 : 클라세션 ,방향성을 뜻함
-    class Packet
+    public abstract class Packet
     {
+        //packet의 header변수들
+        //클라이언트에서 임의로 수정이 가능한 영역이므로 참고만 해야함
         public ushort size; //사이즈는 음이 아닌 정수이기에 ushort로 선언
         public ushort packetId;
+
+        public abstract ArraySegment<byte> Write();
+        public abstract void Read(ArraySegment<byte> s);
     }
     class PlayerInfoReq : Packet 
     {
         public long playerId;
+
+        public PlayerInfoReq()
+        {
+            this.packetId = (ushort)PacketID.PlayerInfoReq;
+        }
+
+        //[][][][][][][][][][][][] 12바이트
+        public override void Read(ArraySegment<byte> s)
+        {
+            ushort count = 0;
+            
+            //ushort size = BitConverter.ToUInt16(s.Array, s.Offset + count);
+            count += 2;
+
+            //ushort id = BitConverter.ToUInt16(s.Array, s.Offset + count);
+            count += 2;
+
+            
+            //읽기만 가능한 숫자값으로 playerID로 대체
+            //현재까지의 count == header 영역의 배열이기에 offset+count 하여 자식 클래스의 변수 부터
+            //s.count-count == 자식클래스의 데이터 영역까지만 가져와서 값을 지정
+            this.playerId = BitConverter.ToInt64(new ReadOnlySpan<byte>(s.Array, s.Offset + count, s.Count - count));
+            count += 8;
+        }
+        /// <summary>
+        /// packet 자식 클래스 내에서 Serialize 하는 함수
+        /// </summary>
+        /// <returns></returns>
+        public override ArraySegment<byte> Write()
+        {
+            ArraySegment<byte> s = SendBufferHelper.Open(4096);         //openSegment
+
+            //packet의 쓰기 위치를 갱신 하기 위해 지역변수 count로
+            //이전 배열의 size를 감안하여 자동화를 위한 지역변수
+            ushort count = 0;
+            bool success = true;
+
+            //and equal 연산자 == "success&BitConverter.TryWriteBytes.... 와 같음
+            count += 2;
+            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array, s.Offset + count, s.Count - count), this.packetId);
+            count += 2;
+            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array, s.Offset + count, s.Count - count), this.playerId);
+            count += 8;
+            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array, s.Offset, s.Count), count);
+
+            if (success == false) return null; 
+
+
+            return SendBufferHelper.Close(count);
+        }
     }
+/*
     class PlayerInfoOk : Packet
     {
         public int hp;
         public int attack;
     }
-
+*/
     public enum PacketID
     {
         PlayerInfoReq = 1,
         PlayerInfoOk = 2,
     }
-
+/*
     //
     class LoginOkPacket : Packet
     {
 
-    }
+    }*/
 
     public class ServerSession : Session
     {
@@ -55,6 +111,8 @@ namespace DummyClient
         }
 */
 
+
+
         public override void OnConnected(EndPoint endPoint)
         {
 
@@ -62,34 +120,16 @@ namespace DummyClient
 
             //구성요소의 Ushort는 16bit, 1 byte == 8bit 이기에 1 ushort = size 2
             //2ushort == 4byte == size == 4
-            PlayerInfoReq packet = new PlayerInfoReq() { packetId = (ushort)PacketID.PlayerInfoReq,playerId = 1001 };
+            PlayerInfoReq packet = new PlayerInfoReq() { playerId = 1001 };
 
             //보낸다
             //for (int i = 0; i < 5; i++)
             {
-                ArraySegment<byte> s = SendBufferHelper.Open(4096);         //openSegment
-
-                //packet의 쓰기 위치를 갱신 하기 위해 지역변수 count로
-                //이전 배열의 size를 감안하여 자동화를 위한 지역변수
-                ushort count = 0;
-                bool success = true;
-
-                //and equal 연산자 == "success&BitConverter.TryWriteBytes.... 와 같음
-                count += 2;
-                success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array, s.Offset + count, s.Count - count),packet.packetId);
-                count += 2;
-                success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array,s.Offset + count, s.Count - count),packet.playerId);
-                count += 8;
-                success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array,s.Offset, s.Count),count);
-
-                ArraySegment<byte> sendBuff = SendBufferHelper.Close(count);
+                ArraySegment<byte> s = packet.Write();
 
                 //받은 패킷의 누락점이 없을 시
-                if (success)
-                {
-                    //패킷을 서버로 보낸다
-                    Send(sendBuff);
-                }
+                if (s != null)
+                    Send(s);//패킷을 서버로 보낸다
 
             }
         }
