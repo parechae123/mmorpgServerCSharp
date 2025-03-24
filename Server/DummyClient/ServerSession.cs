@@ -21,6 +21,7 @@ namespace DummyClient
     class PlayerInfoReq : Packet 
     {
         public long playerId;
+        public string name; //가변적인 크기의 대표적인 데이터
 
         public PlayerInfoReq()
         {
@@ -28,10 +29,12 @@ namespace DummyClient
         }
 
         //[][][][][][][][][][][][] 12바이트
-        public override void Read(ArraySegment<byte> s)
+        public override void Read(ArraySegment<byte> segment)
         {
             ushort count = 0;
             
+            ReadOnlySpan<byte> s = new ReadOnlySpan<byte>(segment.Array, segment.Offset, segment.Count);
+
             //ushort size = BitConverter.ToUInt16(s.Array, s.Offset + count);
             count += 2;
 
@@ -42,7 +45,7 @@ namespace DummyClient
             //읽기만 가능한 숫자값으로 playerID로 대체
             //현재까지의 count == header 영역의 배열이기에 offset+count 하여 자식 클래스의 변수 부터
             //s.count-count == 자식클래스의 데이터 영역까지만 가져와서 값을 지정
-            this.playerId = BitConverter.ToInt64(new ReadOnlySpan<byte>(s.Array, s.Offset + count, s.Count - count));
+            this.playerId = BitConverter.ToInt64(s.Slice(count,s.Length-count));
             count += 8;
         }
         /// <summary>
@@ -51,20 +54,21 @@ namespace DummyClient
         /// <returns></returns>
         public override ArraySegment<byte> Write()
         {
-            ArraySegment<byte> s = SendBufferHelper.Open(4096);         //openSegment
+            ArraySegment<byte> segment = SendBufferHelper.Open(4096);         //openSegment
 
             //packet의 쓰기 위치를 갱신 하기 위해 지역변수 count로
             //이전 배열의 size를 감안하여 자동화를 위한 지역변수
             ushort count = 0;
             bool success = true;
 
-            //and equal 연산자 == "success&BitConverter.TryWriteBytes.... 와 같음
-            count += 2;
-            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array, s.Offset + count, s.Count - count), this.packetId);
-            count += 2;
-            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array, s.Offset + count, s.Count - count), this.playerId);
-            count += 8;
-            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Array, s.Offset, s.Count), count);
+            Span<byte> s = new Span<byte>(segment.Array, segment.Offset, segment.Count);
+
+            count += sizeof(ushort);
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.packetId);
+            count += sizeof(ushort);
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.playerId);
+            count += sizeof(long);
+            success &= BitConverter.TryWriteBytes(s, count);
 
             if (success == false) return null; 
 
