@@ -15,6 +15,8 @@ namespace DummyClient
         public ushort size; //사이즈는 음이 아닌 정수이기에 ushort로 선언
         public ushort packetId;
 
+        public List<int> skills = new List<int>();//TODO : 가변크기의 패킷유형
+
         public abstract ArraySegment<byte> Write();
         public abstract void Read(ArraySegment<byte> s);
     }
@@ -36,17 +38,21 @@ namespace DummyClient
             ReadOnlySpan<byte> s = new ReadOnlySpan<byte>(segment.Array, segment.Offset, segment.Count);
 
             //ushort size = BitConverter.ToUInt16(s.Array, s.Offset + count);
-            count += 2;
-
+            count += sizeof(ushort);
             //ushort id = BitConverter.ToUInt16(s.Array, s.Offset + count);
-            count += 2;
-
-            
+            count += sizeof(ushort);
             //읽기만 가능한 숫자값으로 playerID로 대체
             //현재까지의 count == header 영역의 배열이기에 offset+count 하여 자식 클래스의 변수 부터
             //s.count-count == 자식클래스의 데이터 영역까지만 가져와서 값을 지정
             this.playerId = BitConverter.ToInt64(s.Slice(count,s.Length-count));
-            count += 8;
+            count += sizeof(long);
+
+            //write 의 지역번수 nameLen을 추출하는 과정
+
+            ushort nameLen = BitConverter.ToUInt16(s.Slice(count, s.Length - count));
+            count += sizeof(ushort);
+            //byte=>string
+            this.name = Encoding.Unicode.GetString(s.Slice(count,nameLen));
         }
         /// <summary>
         /// packet 자식 클래스 내에서 Serialize 하는 함수
@@ -68,9 +74,30 @@ namespace DummyClient
             count += sizeof(ushort);
             success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.playerId);
             count += sizeof(long);
+/*            success &= BitConverter.TryWriteBytes(s, count);
+
+            //string
+            //string len [2]
+            //byte[]
+
+            ushort nameLen = (ushort)Encoding.Unicode.GetByteCount(this.name);
+            success &= BitConverter.TryWriteBytes(s.Slice(count,s.Length-count),nameLen);
+            count += sizeof(ushort);
+            //EX : Array.Copy(i, 1, segmentArray, 0, i.Length);
+            //라고 가정 했을 시 segmentArray에 0번째부터 i배열을 1~i.Length까지 카피해온다는 뜻
+
+            Array.Copy(Encoding.Unicode.GetBytes(this.name),0,segment.Array,count,nameLen);
+            count += nameLen;*/
+
+
+            ushort nameLen = (ushort)Encoding.Unicode.GetBytes(this.name, 0, this.name.Length, segment.Array, segment.Offset + count+sizeof(ushort));
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), nameLen);
+            count += sizeof(ushort);
+            count += nameLen;
+
             success &= BitConverter.TryWriteBytes(s, count);
 
-            if (success == false) return null; 
+            if (success == false) return null;
 
 
             return SendBufferHelper.Close(count);
@@ -124,7 +151,7 @@ namespace DummyClient
 
             //구성요소의 Ushort는 16bit, 1 byte == 8bit 이기에 1 ushort = size 2
             //2ushort == 4byte == size == 4
-            PlayerInfoReq packet = new PlayerInfoReq() { playerId = 1001 };
+            PlayerInfoReq packet = new PlayerInfoReq() { playerId = 1001,name = "ABCD" };
 
             //보낸다
             //for (int i = 0; i < 5; i++)
