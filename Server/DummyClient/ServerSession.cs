@@ -19,7 +19,7 @@ namespace DummyClient
         public abstract ArraySegment<byte> Write();
         public abstract void Read(ArraySegment<byte> s);
     }
-    class PlayerInfoReq : Packet 
+    class PlayerInfoReq /*: Packet */
     {
         public long playerId;
         public string name; //가변적인 크기의 대표적인 데이터
@@ -61,14 +61,8 @@ namespace DummyClient
 
         public List<SkillInfo> skills = new List<SkillInfo>();//TODO : 가변크기의 패킷유형
 
-
-        public PlayerInfoReq()
-        {
-            this.packetId = (ushort)PacketID.PlayerInfoReq;
-        }
-
         //[][][][][][][][][][][][] 12바이트
-        public override void Read(ArraySegment<byte> segment)
+        public void Read(ArraySegment<byte> segment)
         {
             ushort count = 0;
             
@@ -111,7 +105,7 @@ namespace DummyClient
         /// packet 자식 클래스 내에서 Serialize 하는 함수
         /// </summary>
         /// <returns></returns>
-        public override ArraySegment<byte> Write()
+        public ArraySegment<byte> Write()
         {
             ArraySegment<byte> segment = SendBufferHelper.Open(4096);         //openSegment
 
@@ -123,7 +117,7 @@ namespace DummyClient
             Span<byte> s = new Span<byte>(segment.Array, segment.Offset, segment.Count);
 
             count += sizeof(ushort);
-            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.packetId);
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)PacketID.PlayerInfoReq);
             count += sizeof(ushort);
             success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.playerId);
             count += sizeof(long);

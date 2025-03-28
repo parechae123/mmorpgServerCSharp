@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--PDL = Packet Definition List-->
+<PDL>
+	<packet name ="PlayerInfoReq">
+		<long name="player id"/>
+		<string name="name"/>
+		<!--계층적 구조의 예제-->
+		<list name ="name">
+			<int name="id"/>
+			<short name="level"/>
+			<float name="duration"/>
+		</list>
+	</packet>
+</PDL>
