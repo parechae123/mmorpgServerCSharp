@@ -2,10 +2,10 @@
 <!--PDL = Packet Definition List-->
 <PDL>
 	<packet name ="PlayerInfoReq">
-		<long name="player id"/>
+		<long name="playerId"/>
 		<string name="name"/>
 		<!--계층적 구조의 예제-->
-		<list name ="name">
+		<list name ="skill">
 			<int name="id"/>
 			<short name="level"/>
 			<float name="duration"/>
