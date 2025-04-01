@@ -55,8 +55,7 @@ namespace PacketGenerator
             Tuple<string,string,string> t = ParseMembers(r);
             genPackets += string.Format(PacketFormat.packetFormat,
                 packetName,t.Item1,t.Item2,t.Item3);
-            packetEnums += string.Format(PacketFormat.packetEnumFormat,
-                packetName, ++packetId);
+            packetEnums += string.Format(PacketFormat.packetEnumFormat,packetName, ++packetId)+ Environment.NewLine+ "\t";
         }
 
 
@@ -99,6 +98,15 @@ namespace PacketGenerator
                 {
                     case "bool":
                     case "byte":
+                        memberCode += string.Format(PacketFormat.memberFormat, memberType, memberName);
+                        readCode += string.Format(PacketFormat.readByteFormat, memberName, memberType);
+                        writeCode += string.Format(PacketFormat.writeByteFormat, memberName, memberType);
+                        break;
+                    case "sbyte":
+                        memberCode += string.Format(PacketFormat.memberFormat, memberType, memberName);
+                        readCode += string.Format(PacketFormat.readByteFormat, memberName, memberType);
+                        writeCode += string.Format(PacketFormat.writeByteFormat, memberName, memberType);
+                        break;
                     case "short":
                     case "ushort":
                     case "int":
@@ -107,7 +115,6 @@ namespace PacketGenerator
                     case "double":
                         memberCode += string.Format(PacketFormat.memberFormat, memberType, memberName);
                         readCode += string.Format(PacketFormat.readFormat, memberName, ToMemberType(memberType), memberType);
-                        Console.WriteLine(readCode);
                         writeCode += string.Format(PacketFormat.writeFormat, memberName, memberType);
                         break;
                     case "string":

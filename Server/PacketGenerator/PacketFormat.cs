@@ -111,11 +111,18 @@ public List<{0}> {1}s = new List<{0}>();
 count += sizeof({2});
 ";
 
+        //{0} 변수명
+        //{1} ubyte byte 캐스팅을 위한 변수형식
+        public static string readByteFormat =
+@"this.{0} = ({1})segment.Array[segment.Offset + count];
+count += sizeof({1});";
+
+
         //{0} 변수 이름
         public static string readStringFormat =
 @"ushort {0}Len = BitConverter.ToUInt16(s.Slice(count, s.Length - count));
 count += sizeof(ushort);
-this.{0} = Encoding.Unicode.GetString(s.Slice(count,{0}Len));
+this.{0} = Encoding.Unicode.GetString(s.Slice(count, {0}Len));
 count += {0}Len;";
 
         //{0} 리스트 이름 {대문자}
@@ -153,5 +160,10 @@ success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count),(ushort)t
 count += sizeof(ushort);
 foreach ({0} {1} in this.{1}s)
     success &= {1}.Write(s, ref count);";
+        //{0} 변수명
+        //{1} ubyte byte 캐스팅을 위한 변수형식
+        public static string writeByteFormat =
+@"segment.Array[segment.Offset + count] = ({1})this.{0};
+count += sizeof({1});";
     }
 }
