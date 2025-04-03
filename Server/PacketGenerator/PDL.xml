@@ -2,6 +2,7 @@
 <!--PDL = Packet Definition List-->
 <PDL>
 	<packet name ="PlayerInfoReq">
+		<byte name ="testByte"/>
 		<long name="playerId"/>
 		<string name="name"/>
 		<!--계층적 구조의 예제-->
@@ -9,6 +10,15 @@
 			<int name="id"/>
 			<short name="level"/>
 			<float name="duration"/>
+			<list name ="attribute">
+				<int name ="att"/>
+				<int name ="attTwo"/>
+				<int name ="attThree"/>
+			</list>
 		</list>
+	</packet>
+	<packet name ="Test">
+		<int name="testInt"/>
+		<string name="name"/>
 	</packet>
 </PDL>
