@@ -11,7 +11,8 @@ namespace PacketGenerator
     {
         //{0} 패킷 등록
         public static string managerFormat =
-@"
+@"using Server;
+using ServerCore;
 class PacketManager
 {{
     #region Singleton
