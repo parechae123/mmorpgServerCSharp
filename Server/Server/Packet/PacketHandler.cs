@@ -1,29 +1,19 @@
 ﻿using ServerCore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace Server
+class PacketHandler
 {
-    class PacketHandler
+    public static void C_PlayerInfoReqHandler(PacketSession session, IPacket packet)
     {
-        public static void PlayerInfoReqHandler(PacketSession session, IPacket packet)
-        {
-            PlayerInfoReq p = packet as PlayerInfoReq;
+        C_PlayerInfoReq p = packet as C_PlayerInfoReq;
 
-            Console.WriteLine($"Player InfoReq : {p.playerId} {p.name}");
+        Console.WriteLine($"Player InfoReq : {p.playerId} {p.name}");
            
-            foreach (PlayerInfoReq.Skill skill in p.skills)
-            {
-                Console.WriteLine($"Skill({skill.id})({skill.level})({skill.duration})");
-            }
-        }
-
-        internal static void TestHandler(PacketSession session, IPacket packet)
+        foreach (C_PlayerInfoReq.Skill skill in p.skills)
         {
-            throw new NotImplementedException();
+            Console.WriteLine($"Skill({skill.id})({skill.level})({skill.duration})");
         }
     }
 }

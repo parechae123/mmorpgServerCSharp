@@ -36,14 +36,14 @@ namespace DummyClient
 
             //구성요소의 Ushort는 16bit, 1 byte == 8bit 이기에 1 ushort = size 2
             //2ushort == 4byte == size == 4
-            PlayerInfoReq packet = new PlayerInfoReq() { playerId = 1001, name = "ABCD" };
-            var skill = new PlayerInfoReq.Skill() { id = 501, level = 1, duration = 3.0f, };
-            skill.attributes.Add(new PlayerInfoReq.Skill.Attribute() { att = 1, attTwo = 2, attThree = 3 });
+            C_PlayerInfoReq packet = new C_PlayerInfoReq() { playerId = 1001, name = "ABCD" };
+            var skill = new C_PlayerInfoReq.Skill() { id = 501, level = 1, duration = 3.0f, };
+            skill.attributes.Add(new C_PlayerInfoReq.Skill.Attribute() { att = 1, attTwo = 2, attThree = 3 });
             packet.skills.Add(skill);
-            packet.skills.Add(new PlayerInfoReq.Skill() { id = 101, duration = 1.0f, level = 1 });
-            packet.skills.Add(new PlayerInfoReq.Skill() { id = 201, duration = 2.0f, level = 2 });
-            packet.skills.Add(new PlayerInfoReq.Skill() { id = 301, duration = 3.0f, level = 3 });
-            packet.skills.Add(new PlayerInfoReq.Skill() { id = 401, duration = 4.0f, level = 4 });
+            packet.skills.Add(new C_PlayerInfoReq.Skill() { id = 101, duration = 1.0f, level = 1 });
+            packet.skills.Add(new C_PlayerInfoReq.Skill() { id = 201, duration = 2.0f, level = 2 });
+            packet.skills.Add(new C_PlayerInfoReq.Skill() { id = 401, duration = 4.0f, level = 4 });
+            packet.skills.Add(new C_PlayerInfoReq.Skill() { id = 301, duration = 3.0f, level = 3 });
             //보낸다
             //for (int i = 0; i < 5; i++)
             {
