@@ -16,4 +16,8 @@ class PacketHandler
             Console.WriteLine($"Skill({skill.id})({skill.level})({skill.duration})");
         }
     }
+    public static void C_ChatHandler(PacketSession session,IPacket packet)
+    {
+
+    }
 }

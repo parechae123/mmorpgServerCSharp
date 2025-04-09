@@ -10,4 +10,9 @@ class PacketHandler
     {
         throw new NotImplementedException();
     }
+
+    public static void S_ChatHandler(PacketSession session, IPacket packet)
+    {
+        throw new NotImplementedException();
+    }
 }
