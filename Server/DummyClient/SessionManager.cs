@@ -24,7 +24,7 @@ namespace DummyClient
                 foreach (ServerSession session in _sessions)
                 {
                     C_Chat chatPacket = new C_Chat();
-                    chatPacket.chat = $"웅성웅성";
+                    chatPacket.chat = $"Hello Server !";
                     ArraySegment<byte> segment = chatPacket.Write();
 
                     session.Send(segment);

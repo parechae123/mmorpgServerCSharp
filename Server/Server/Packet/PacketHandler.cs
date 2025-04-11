@@ -19,12 +19,16 @@ class PacketHandler
     }
     public static void C_ChatHandler(PacketSession session,IPacket packet)
     {
-        C_Chat chat = packet as C_Chat;
+        C_Chat chatPacket = packet as C_Chat;
         ClientSession clientSession = session as ClientSession;
 
         if (clientSession.Room == null)
             return;
+        
+        GameRoom room = clientSession.Room;
 
-        clientSession.Room.Broadcast(clientSession,chat.chat);
+        room.Push(
+            ()=> room.Broadcast(clientSession,chatPacket.chat)
+        );
     }
 }
