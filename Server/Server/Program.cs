@@ -7,10 +7,9 @@ namespace Server
     public static class Program
     {
         static LIstener _lIstener = new LIstener();
-
+        public static GameRoom Room = new GameRoom();
         public static void Main()
         {
-            PacketManager.Instance.Register();
 
             //DMS == Domain, Name , System
             string host = Dns.GetHostName();
@@ -21,7 +20,7 @@ namespace Server
             // CMD  => ping www.google.com
 
 
-            _lIstener.Init(endpoint, () => { return new ClientSession(); });
+            _lIstener.Init(endpoint, () => { return SessionManager.Instance.Generate(); });
             Console.WriteLine("Listening....");
 
             while (true)

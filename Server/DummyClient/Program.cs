@@ -20,18 +20,18 @@ namespace DummyClient
             Console.WriteLine("여기");
             Connector connector = new Connector();
 
-            connector.Connect(endpoint, () => { return new ServerSession(); });
+            connector.Connect(endpoint, () => { return SessionManager.Instance.Generate(); },100);
             while (true)
             {
                 try
                 {
+                    SessionManager.Instance.SendForEach();
                 }
                 catch (Exception e)
                 {
-
                     Console.WriteLine(e.ToString());
                 }
-                Thread.Sleep(100);
+                Thread.Sleep(250);
             }
 
             

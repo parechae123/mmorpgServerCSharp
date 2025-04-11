@@ -7,7 +7,7 @@ using System.Text;
 namespace DummyClient
 {
 
-    public class ServerSession : Session
+    public class ServerSession : PacketSession
     {
 /*      C#에서 사용 하는 포인터 예제
         //unsafe 키워드를 넣을 시 C++의 포인터마냥 쓸 수 있음
@@ -33,27 +33,6 @@ namespace DummyClient
         {
 
             Console.WriteLine($"OnConnected : {endPoint}");
-
-            //구성요소의 Ushort는 16bit, 1 byte == 8bit 이기에 1 ushort = size 2
-            //2ushort == 4byte == size == 4
-            C_PlayerInfoReq packet = new C_PlayerInfoReq() { playerId = 1001, name = "ABCD" };
-            var skill = new C_PlayerInfoReq.Skill() { id = 501, level = 1, duration = 3.0f, };
-            skill.attributes.Add(new C_PlayerInfoReq.Skill.Attribute() { att = 1, attTwo = 2, attThree = 3 });
-            packet.skills.Add(skill);
-            packet.skills.Add(new C_PlayerInfoReq.Skill() { id = 101, duration = 1.0f, level = 1 });
-            packet.skills.Add(new C_PlayerInfoReq.Skill() { id = 201, duration = 2.0f, level = 2 });
-            packet.skills.Add(new C_PlayerInfoReq.Skill() { id = 401, duration = 4.0f, level = 4 });
-            packet.skills.Add(new C_PlayerInfoReq.Skill() { id = 301, duration = 3.0f, level = 3 });
-            //보낸다
-            //for (int i = 0; i < 5; i++)
-            {
-                ArraySegment<byte> s = packet.Write();
-
-                //받은 패킷의 누락점이 없을 시
-                if (s != null)
-                    Send(s);//패킷을 서버로 보낸다
-
-            }
         }
 
         public override void OnDisconnected(EndPoint endPoint)
@@ -62,16 +41,14 @@ namespace DummyClient
             Console.WriteLine($"OnDisConnected : {endPoint}");
         }
 
-        public override int OnRecv(ArraySegment<byte> buffer)
+        public override void OnRecvPacket(ArraySegment<byte> buffer)
         {
-            string recvData = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
-            Console.WriteLine($"[From Server] {recvData}");
-            return buffer.Count;
+            PacketManager.Instance.OnRecvPacket(this,buffer);
         }
 
         public override void OnSend(int numOfBytes)
         {
-            Console.WriteLine($"Transferred bytes : {numOfBytes}");
+            //Console.WriteLine($"Transferred bytes : {numOfBytes}");
 
         }
     }
