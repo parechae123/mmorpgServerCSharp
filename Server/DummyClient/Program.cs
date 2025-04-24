@@ -20,7 +20,7 @@ namespace DummyClient
             Console.WriteLine("여기");
             Connector connector = new Connector();
 
-            connector.Connect(endpoint, () => { return SessionManager.Instance.Generate(); },100);
+            connector.Connect(endpoint, () => { return SessionManager.Instance.Generate(); },500);
             while (true)
             {
                 try

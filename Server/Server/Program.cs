@@ -8,6 +8,11 @@ namespace Server
     {
         static LIstener _lIstener = new LIstener();
         public static GameRoom Room = new GameRoom();
+        static void FlushRoom()
+        {
+            Room.Push(() => Room.Flush());
+            JobTimer.Instance.Push(FlushRoom, 250);
+        }
         public static void Main()
         {
 
@@ -23,9 +28,16 @@ namespace Server
             _lIstener.Init(endpoint, () => { return SessionManager.Instance.Generate(); });
             Console.WriteLine("Listening....");
 
+            int roomTick = 0;
+
+            //FlushRoom();
+            JobTimer.Instance.Push(FlushRoom);
+
             while (true)
             {
-                ;
+                JobTimer.Instance.Flush();
+
+                //tickCount
             }
         }
     }

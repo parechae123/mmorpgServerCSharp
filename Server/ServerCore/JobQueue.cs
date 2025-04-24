@@ -34,8 +34,10 @@ namespace ServerCore
             if (flush)
                 Flush();
         }
-
-        void Flush()
+        /// <summary>
+        /// jobQueue가 비어 있지 않을 시 순차적으로 실행시켜줌
+        /// </summary>
+        public void Flush()
         {
             while (true)
             {
